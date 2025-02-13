@@ -5,14 +5,14 @@
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.thetradinggallery.com/en/ca/add-multiple/singles/*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=discord.com
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=google.com
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    let style = document.createElement('style');
+        let style = document.createElement('style');
     style.innerHTML = `
         .EditListingCard_editableListingCard__q2Gmr .EditListingCard_sectionRow__wvdmp .EditListingCard_body__l1CJK {
             overflow: hidden !important;
@@ -30,44 +30,44 @@
 
     }
 
-    function insertTriggerButton(location = '') {
-        let button = document.evaluate('/html/body/div[4]/main/main/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/button', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        let targetDiv = document.querySelector('.CustomPagination_pageNumbers__cFMiL');
-        if (location != '') {
-            targetDiv = document.querySelector(location);
-        }
-
-        if (button && targetDiv) {
-            // Check if the trigger button already exists
-            if (targetDiv.querySelector('.trigger-button')) {
-                return; // Prevent duplicate buttons
-            }
-
-            // Create a new button
-            let triggerButton = document.createElement('button');
-            triggerButton.textContent = "Trigger Upload";
-            triggerButton.classList.add('trigger-button'); // Mark for future checks
-            triggerButton.style.margin = "10px"; // Optional styling
-            triggerButton.style.background = "cyan";
-
-            // Add click event to trigger the original button
-            triggerButton.addEventListener('click', () => {
-                button.click(); // Simulates a real user clicking the original button
-            });
-
-            // Insert the new button at the beginning of the target div
-            targetDiv.insertBefore(triggerButton, targetDiv.firstChild);
-        }
+function insertTriggerButton(location='') {
+    let button = document.evaluate('/html/body/div[4]/main/main/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/button', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    let targetDiv = document.querySelector('.CustomPagination_pageNumbers__cFMiL');
+    if (location != ''){
+        targetDiv = document.querySelector(location);
     }
 
-    function clearQuantityInput() {
+    if (button && targetDiv) {
+        // Check if the trigger button already exists
+        if (targetDiv.querySelector('.trigger-button')) {
+            return; // Prevent duplicate buttons
+        }
+
+        // Create a new button
+        let triggerButton = document.createElement('button');
+        triggerButton.textContent = "Trigger Upload";
+        triggerButton.classList.add('trigger-button'); // Mark for future checks
+        triggerButton.style.margin = "10px"; // Optional styling
+        triggerButton.style.background = "cyan";
+
+        // Add click event to trigger the original button
+        triggerButton.addEventListener('click', () => {
+            button.click(); // Simulates a real user clicking the original button
+        });
+
+        // Insert the new button at the beginning of the target div
+        targetDiv.insertBefore(triggerButton, targetDiv.firstChild);
+    }
+}
+
+        function clearQuantityInput() {
         let quantityInput = document.querySelector('#quantity input[type="number"]');
 
         if (quantityInput) {
             quantityInput.value = ""; // Set it to blank
 
             // Optional: Ensure it stays blank when users interact
-            quantityInput.addEventListener('input', function() {
+            quantityInput.addEventListener('input', function () {
                 if (this.value == "0") {
                     this.value = "";
                 }
@@ -79,7 +79,7 @@
         }
     }
 
-    function () {
+        function clearAllQuantityInputs() {
         let quantityInputs = document.querySelectorAll('#quantity input[type="number"]');
 
         if (quantityInputs.length > 0) {
@@ -87,7 +87,7 @@
                 input.value = ""; // Set to blank initially
 
                 // Prevent users from entering "0"
-                input.addEventListener('input', function() {
+                input.addEventListener('input', function () {
                     if (this.value === "0") {
                         this.value = "";
                     }
@@ -112,22 +112,22 @@
         window.location.href = url.toString(); // Reload the page with new page number
     }
 
-    function getMaxPage() {
-        let paginationContainer = document.querySelector('.CustomPagination_pageNumbers__cFMiL');
-        if (!paginationContainer) return 1; // Default to page 1 if not found
+function getMaxPage() {
+    let paginationContainer = document.querySelector('.CustomPagination_pageNumbers__cFMiL');
+    if (!paginationContainer) return 1; // Default to page 1 if not found
 
-        let pageNumbers = paginationContainer.querySelectorAll('h2.CustomPagination_pageNumber__RT_xX');
-        let maxPage = 1;
+    let pageNumbers = paginationContainer.querySelectorAll('h2.CustomPagination_pageNumber__RT_xX');
+    let maxPage = 1;
 
-        pageNumbers.forEach(h2 => {
-            let pageNum = parseInt(h2.textContent.trim());
-            if (!isNaN(pageNum) && pageNum > maxPage) {
-                maxPage = pageNum; // Update max page if this number is larger
-            }
-        });
+    pageNumbers.forEach(h2 => {
+        let pageNum = parseInt(h2.textContent.trim());
+        if (!isNaN(pageNum) && pageNum > maxPage) {
+            maxPage = pageNum; // Update max page if this number is larger
+        }
+    });
 
-        return maxPage;
-    }
+    return maxPage;
+}
 
     function createCustomPagination() {
         let topPage = document.querySelector('.CustomPagination_customPagination__guEd4'); // Where to insert pagination
@@ -137,10 +137,10 @@
             let existingPagination = document.querySelector('.custom-pagination');
             if (existingPagination) existingPagination.remove();
 
-            let currentPage = getCurrentPage();
-            let maxPage = getMaxPage(); // Get max page dynamically
-            let startPage = Math.max(1, currentPage - 30);
-            let endPage = Math.min(maxPage, currentPage + 30); // Cap at max page
+        let currentPage = getCurrentPage();
+        let maxPage = getMaxPage(); // Get max page dynamically
+        let startPage = Math.max(1, currentPage - 30);
+        let endPage = Math.min(maxPage, currentPage + 30); // Cap at max page
 
             // Create pagination container
             let paginationContainer = document.createElement('div');
@@ -178,7 +178,7 @@
             pageInput.type = 'number';
             pageInput.min = '1';
             pageInput.max = maxPage;
-            pageInput.placeholder = `1 - ${maxPage}`;
+        pageInput.placeholder = `1 - ${maxPage}`;
             pageInput.style.padding = '5px';
             pageInput.style.width = '80px';
             pageInput.style.border = '1px solid #ccc';
@@ -195,53 +195,53 @@
             goButton.style.borderRadius = '5px';
 
             // Add event listener to navigate when the "Go" button is clicked
-            goButton.addEventListener('click', function() {
+        goButton.addEventListener('click', function() {
+            let pageNumber = parseInt(pageInput.value);
+            if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= maxPage) {
+                navigateToPage(pageNumber);
+            }
+        });
+
+                    // Allow navigation with the "Enter" key
+        pageInput.addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
                 let pageNumber = parseInt(pageInput.value);
                 if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= maxPage) {
                     navigateToPage(pageNumber);
                 }
-            });
-
-            // Allow navigation with the "Enter" key
-            pageInput.addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') {
-                    let pageNumber = parseInt(pageInput.value);
-                    if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= maxPage) {
-                        navigateToPage(pageNumber);
-                    }
-                }
-            });
+            }
+        });
 
             // Create a new button
-            let triggerButton = document.createElement('button');
-            let button = document.evaluate('/html/body/div[4]/main/main/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/button', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        let triggerButton = document.createElement('button');
+                let button = document.evaluate('/html/body/div[4]/main/main/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/button', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
-            triggerButton.textContent = "Trigger Upload";
-            triggerButton.classList.add('trigger-button'); // Mark for future checks
-            triggerButton.style.margin = "10px"; // Optional styling
-            triggerButton.style.background = "cyan";
+        triggerButton.textContent = "Trigger Upload";
+        triggerButton.classList.add('trigger-button'); // Mark for future checks
+        triggerButton.style.margin = "10px"; // Optional styling
+        triggerButton.style.background = "cyan";
 
-            // Add click event to trigger the original button
-            triggerButton.addEventListener('click', () => {
-                button.click(); // Simulates a real user clicking the original button
-            });
+        // Add click event to trigger the original button
+        triggerButton.addEventListener('click', () => {
+            button.click(); // Simulates a real user clicking the original button
+        });
 
-            // Create a "Refresh" button to reload pagination
-            let refreshButton = document.createElement('button');
-            refreshButton.textContent = 'Refresh';
-            refreshButton.style.padding = '5px 10px';
-            refreshButton.style.cursor = 'pointer';
-            refreshButton.style.border = '1px solid #ffcc00';
-            refreshButton.style.background = '#ffcc00';
-            refreshButton.style.color = '#000';
-            refreshButton.style.borderRadius = '5px';
-            refreshButton.style.marginLeft = '5px';
+                    // Create a "Refresh" button to reload pagination
+        let refreshButton = document.createElement('button');
+        refreshButton.textContent = 'Refresh';
+        refreshButton.style.padding = '5px 10px';
+        refreshButton.style.cursor = 'pointer';
+        refreshButton.style.border = '1px solid #ffcc00';
+        refreshButton.style.background = '#ffcc00';
+        refreshButton.style.color = '#000';
+        refreshButton.style.borderRadius = '5px';
+        refreshButton.style.marginLeft = '5px';
 
-            // Event listener to refresh pagination
-            refreshButton.addEventListener('click', function() {
-                console.log('Refreshing pagination...');
-                createCustomPagination(); // Recreate pagination when clicked
-            });
+        // Event listener to refresh pagination
+        refreshButton.addEventListener('click', function () {
+            console.log('Refreshing pagination...');
+            createCustomPagination(); // Recreate pagination when clicked
+        });
 
 
             // Append input and button to pagination
@@ -253,50 +253,48 @@
             // Insert at the top of the page
             topPage.insertBefore(paginationContainer, topPage.firstChild);
 
-            console.log(`Custom pagination added! Max page: ${maxPage}`);
+        console.log(`Custom pagination added! Max page: ${maxPage}`);
         } else {
             console.error("Pagination container not found.");
         }
     }
 
-    function runScripts() {
-        console.log('Update detected! Running scripts...');
+  function runScripts() {
+    console.log('Update detected! Running scripts...');
 
-        uncheckCheckbox();
-        insertTriggerButton();
-        //clearAllQuantityInputs();
+    uncheckCheckbox();
+    insertTriggerButton();
+    clearAllQuantityInputs();
 
 
-        // Ensure pagination is only created ONCE
-        if (!document.querySelector('.custom-pagination')) {
-            createCustomPagination();
+    // Ensure pagination is only created ONCE
+    //if (!document.querySelector('.custom-pagination')) {
+    if (!document.querySelector('.custom-pagination')) {
+        createCustomPagination();
+    }
+}
+
+// Run once after the page loads
+window.addEventListener('load', runScripts);
+
+// Use a single MutationObserver to monitor changes efficiently
+let observer = new MutationObserver((mutations) => {
+    let shouldRun = false;
+
+    for (let mutation of mutations) {
+        if (mutation.addedNodes.length || mutation.removedNodes.length) {
+            shouldRun = true;
+            break;
         }
     }
 
-    // Run once after the page loads
-    window.addEventListener('load', runScripts);
+    if (shouldRun) {
+        console.log('DOM updated, running scripts...');
+        runScripts();
+    }
+});
 
-    // Use a single MutationObserver to monitor changes efficiently
-    let observer = new MutationObserver((mutations) => {
-        let shouldRun = false;
-
-        for (let mutation of mutations) {
-            if (mutation.addedNodes.length || mutation.removedNodes.length) {
-                shouldRun = true;
-                break;
-            }
-        }
-
-        if (shouldRun) {
-            console.log('DOM updated, running scripts...');
-            runScripts();
-        }
-    });
-
-    // Start observing changes
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+// Start observing changes
+observer.observe(document.body, { childList: true, subtree: true });
 
 })();
