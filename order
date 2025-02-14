@@ -1,126 +1,300 @@
 // ==UserScript==
-// @name         TTG Order Helper
-// @namespace    https://github.com/weejiaquan/
-// @version      2025-02-14
-// @description  Extracts order details across multiple pages and copies them to clipboard
-// @author       Lychwee
-// @match        https://www.thetradinggallery.com/en/ca/sellers/manage-orders*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=google.com
+// @name         TTG Listing Helper
+// @namespace    http://tampermonkey.net/
+// @version      2025-02-13
+// @description  try to take over the world!
+// @author       You
+// @match        https://www.thetradinggallery.com/en/ca/add-multiple/singles/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=discord.com
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    // Create and insert a persistent button
-    function addScrapeButton() {
-        let button = document.createElement('button');
-        button.innerText = 'Scrape Data to Clipboard';
-        button.style.position = 'fixed';
-        button.style.top = '10px';
-        button.style.right = '10px';
-        button.style.zIndex = '10000';
-        button.style.padding = '10px 15px';
-        button.style.fontSize = '14px';
-        button.style.backgroundColor = '#007bff';
-        button.style.color = 'white';
-        button.style.border = 'none';
-        button.style.borderRadius = '5px';
-        button.style.cursor = 'pointer';
-        button.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.3)';
-        button.style.opacity = '0.5';
-        button.addEventListener('click', startScraping);
-        document.body.appendChild(button);
+        let style = document.createElement('style');
+    style.innerHTML = `
+        .EditListingCard_editableListingCard__q2Gmr .EditListingCard_sectionRow__wvdmp .EditListingCard_body__l1CJK {
+            overflow: hidden !important;
+            resize: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    function uncheckCheckbox() {
+        let checkbox = document.evaluate('/html/body/div[4]/main/main/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/input', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+        if (checkbox && checkbox.type === 'checkbox' && checkbox.checked) {
+            checkbox.click(); // Simulate user click to trigger events
+        }
+
     }
 
-    async function scrapeOrders(pageNum) {
-        return new Promise((resolve) => {
-            let data = `\n ======== NEW Page ${pageNum}  ======== \n`;
+function insertTriggerButton(location='') {
+    let button = document.evaluate('/html/body/div[4]/main/main/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/button', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    let targetDiv = document.querySelector('.CustomPagination_pageNumbers__cFMiL');
+    if (location != ''){
+        targetDiv = document.querySelector(location);
+    }
 
-            document.querySelectorAll('.ManageOrderCard_orderCard__g2CG9').forEach(orderCard => {
-                let leftLink = orderCard.querySelector('.ManageOrderCard_left__DtVTM a');
-                let rightSection = orderCard.querySelector('.ManageOrderCard_right__0dbv9');
-                let productDescription = orderCard.querySelector('.grayBorderTop.ManageOrderCard_productDescription__lLpvq');
+    if (button && targetDiv) {
+        // Check if the trigger button already exists
+        if (targetDiv.querySelector('.trigger-button')) {
+            return; // Prevent duplicate buttons
+        }
 
-                let orderText = leftLink ? leftLink.querySelector('h5')?.textContent.trim() || 'N/A' : 'N/A';
-                let orderHref = leftLink ? leftLink.href : 'N/A';
-                let username = rightSection ? rightSection.querySelector('h5:nth-of-type(1)')?.textContent.trim() || 'N/A' : 'N/A';
-                let email = rightSection ? rightSection.querySelector('h5:nth-of-type(2)')?.textContent.trim() || 'N/A' : 'N/A';
+        // Create a new button
+        let triggerButton = document.createElement('button');
+        triggerButton.textContent = "Trigger Upload";
+        triggerButton.classList.add('trigger-button'); // Mark for future checks
+        triggerButton.style.margin = "10px"; // Optional styling
+        triggerButton.style.background = "cyan";
 
-                let products = [];
-                if (productDescription) {
-                    productDescription.querySelectorAll('h6').forEach(product => {
-                        products.push(product.textContent.trim());
-                    });
-                }
-
-                // Format order details as text
-                data += `------------Page${pageNum}------------\n`;
-                data += `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${pageNum} \n`;
-                data += `Order Link: ${orderHref} (${orderText})\n`;
-                data += `Username: ${username}\n`;
-                data += `Email: ${email}\n`;
-                data += `Products:\n`;
-                products.forEach(product => {
-                    data += `  - ${product}\n`;
-                });
-                data += `\n`;
-            });
-
-            resolve(data);
+        // Add click event to trigger the original button
+        triggerButton.addEventListener('click', () => {
+            button.click(); // Simulates a real user clicking the original button
         });
+
+        // Insert the new button at the beginning of the target div
+        targetDiv.insertBefore(triggerButton, targetDiv.firstChild);
     }
+}
 
-    async function startScraping() {
-        let pageRange = prompt("Enter page range (e.g., 1-5):", "1-5");
-        if (!pageRange || !/^\d+-\d+$/.test(pageRange)) {
-            alert("Invalid input. Please enter in the format: 1-5");
-            return;
-        }
+        function clearQuantityInput() {
+        let quantityInput = document.querySelector('#quantity input[type="number"]');
 
-        let [startPage, endPage] = pageRange.split('-').map(Number);
-        if (startPage > endPage) {
-            alert("Invalid range. Start page must be less than or equal to end page.");
-            return;
-        }
+        if (quantityInput) {
+            quantityInput.value = ""; // Set it to blank
 
-        let allData = '';
-
-        for (let page = startPage; page <= endPage; page++) {
-            console.log(`Scraping page ${page}...`);
-            let url = `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${page}`;
-            await fetch(url)
-                .then(response => response.text())
-                .then(html => {
-                    let parser = new DOMParser();
-                    let doc = parser.parseFromString(html, 'text/html');
-                    document.body.innerHTML = doc.body.innerHTML; // Simulate navigating to the new page
-                    return scrapeOrders(page);
-                })
-                .then(data => {
-                    allData += data;
-                })
-                .catch(err => console.error(`Error fetching page ${page}:`, err));
-
-            // Delay to prevent rapid-fire requests
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        // Copy results to clipboard
-        if (allData.trim()) {
-            navigator.clipboard.writeText(allData).then(() => {
-                console.log("All order details copied to clipboard!");
-                alert("All order details copied! Paste it in a text file.");
-            }).catch(err => {
-                console.error("Error copying text:", err);
+            // Optional: Ensure it stays blank when users interact
+            quantityInput.addEventListener('input', function () {
+                if (this.value == "0") {
+                    this.value = "";
+                }
             });
+
+            console.log("Quantity input set to blank!"); // Debug log
         } else {
-            console.log("No orders found.");
+            console.error("Quantity input not found.");
         }
-
-            addScrapeButton();
-
     }
 
-    window.addEventListener('load', addScrapeButton);
+        function clearAllQuantityInputs() {
+        let quantityInputs = document.querySelectorAll('#quantity input[type="number"]');
+
+        if (quantityInputs.length > 0) {
+            quantityInputs.forEach(input => {
+                input.value = ""; // Set to blank initially
+
+                // Prevent users from entering "0"
+                input.addEventListener('input', function () {
+                    if (this.value === "0") {
+                        this.value = "";
+                    }
+                });
+            });
+
+            console.log(`Cleared ${quantityInputs.length} quantity inputs!`); // Debug log
+        } else {
+            console.error("No quantity inputs found.");
+        }
+    }
+
+
+    function getCurrentPage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return parseInt(urlParams.get('page')) || 1; // Default to page 1 if no param found
+    }
+
+    function navigateToPage(pageNumber) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', pageNumber);
+        window.location.href = url.toString(); // Reload the page with new page number
+    }
+
+function getMaxPage() {
+    let paginationContainer = document.querySelector('.CustomPagination_pageNumbers__cFMiL');
+    if (!paginationContainer) return 1; // Default to page 1 if not found
+
+    let pageNumbers = paginationContainer.querySelectorAll('h2.CustomPagination_pageNumber__RT_xX');
+    let maxPage = 1;
+
+    pageNumbers.forEach(h2 => {
+        let pageNum = parseInt(h2.textContent.trim());
+        if (!isNaN(pageNum) && pageNum > maxPage) {
+            maxPage = pageNum; // Update max page if this number is larger
+        }
+    });
+
+    return maxPage;
+}
+
+    function createCustomPagination() {
+        let topPage = document.querySelector('.CustomPagination_customPagination__guEd4'); // Where to insert pagination
+
+        if (topPage) {
+            // Remove existing custom pagination if already present
+            let existingPagination = document.querySelector('.custom-pagination');
+            if (existingPagination) existingPagination.remove();
+
+        let currentPage = getCurrentPage();
+        let maxPage = getMaxPage(); // Get max page dynamically
+        let startPage = Math.max(1, currentPage - 30);
+        let endPage = Math.min(maxPage, currentPage + 30); // Cap at max page
+
+            // Create pagination container
+            let paginationContainer = document.createElement('div');
+            paginationContainer.classList.add('custom-pagination');
+            paginationContainer.style.display = 'flex';
+            paginationContainer.style.alignItems = 'center';
+            paginationContainer.style.gap = '5px';
+            paginationContainer.style.padding = '10px';
+            paginationContainer.style.border = '1px solid #ccc';
+            paginationContainer.style.background = '#f9f9f9';
+            paginationContainer.style.position = 'sticky';
+            paginationContainer.style.top = '0';
+            paginationContainer.style.zIndex = '1000';
+
+            // Create numbered buttons (N ± 20)
+            for (let i = startPage; i <= endPage; i++) {
+                let pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.style.padding = '5px 10px';
+                pageButton.style.cursor = 'pointer';
+                pageButton.style.border = '1px solid #007bff';
+                pageButton.style.background = i === currentPage ? '#ff5733' : '#007bff'; // Highlight current page
+                pageButton.style.color = '#fff';
+                pageButton.style.borderRadius = '5px';
+
+                pageButton.addEventListener('click', function() {
+                    navigateToPage(i);
+                });
+
+                paginationContainer.appendChild(pageButton);
+            }
+
+            // Create an input box for manual navigation
+            let pageInput = document.createElement('input');
+            pageInput.type = 'number';
+            pageInput.min = '1';
+            pageInput.max = maxPage;
+        pageInput.placeholder = `1 - ${maxPage}`;
+            pageInput.style.padding = '5px';
+            pageInput.style.width = '80px';
+            pageInput.style.border = '1px solid #ccc';
+            pageInput.style.borderRadius = '5px';
+
+            // Create a "Go" button for the input box
+            let goButton = document.createElement('button');
+            goButton.textContent = "Go";
+            goButton.style.padding = '5px 10px';
+            goButton.style.cursor = 'pointer';
+            goButton.style.border = '1px solid #28a745';
+            goButton.style.background = '#28a745';
+            goButton.style.color = '#fff';
+            goButton.style.borderRadius = '5px';
+
+            // Add event listener to navigate when the "Go" button is clicked
+        goButton.addEventListener('click', function() {
+            let pageNumber = parseInt(pageInput.value);
+            if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= maxPage) {
+                navigateToPage(pageNumber);
+            }
+        });
+
+                    // Allow navigation with the "Enter" key
+        pageInput.addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                let pageNumber = parseInt(pageInput.value);
+                if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= maxPage) {
+                    navigateToPage(pageNumber);
+                }
+            }
+        });
+
+            // Create a new button
+        let triggerButton = document.createElement('button');
+                let button = document.evaluate('/html/body/div[4]/main/main/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/button', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+        triggerButton.textContent = "Trigger Upload";
+        triggerButton.classList.add('trigger-button'); // Mark for future checks
+        triggerButton.style.margin = "10px"; // Optional styling
+        triggerButton.style.background = "cyan";
+
+        // Add click event to trigger the original button
+        triggerButton.addEventListener('click', () => {
+            button.click(); // Simulates a real user clicking the original button
+        });
+
+                    // Create a "Refresh" button to reload pagination
+        let refreshButton = document.createElement('button');
+        refreshButton.textContent = 'Refresh';
+        refreshButton.style.padding = '5px 10px';
+        refreshButton.style.cursor = 'pointer';
+        refreshButton.style.border = '1px solid #ffcc00';
+        refreshButton.style.background = '#ffcc00';
+        refreshButton.style.color = '#000';
+        refreshButton.style.borderRadius = '5px';
+        refreshButton.style.marginLeft = '5px';
+
+        // Event listener to refresh pagination
+        refreshButton.addEventListener('click', function () {
+            console.log('Refreshing pagination...');
+            createCustomPagination(); // Recreate pagination when clicked
+        });
+
+
+            // Append input and button to pagination
+            paginationContainer.appendChild(pageInput);
+            paginationContainer.appendChild(goButton);
+            paginationContainer.appendChild(triggerButton);
+            paginationContainer.appendChild(refreshButton);
+
+            // Insert at the top of the page
+            topPage.insertBefore(paginationContainer, topPage.firstChild);
+
+        console.log(`Custom pagination added! Max page: ${maxPage}`);
+        } else {
+            console.error("Pagination container not found.");
+        }
+    }
+
+  function runScripts() {
+    console.log('Update detected! Running scripts...');
+
+    uncheckCheckbox();
+    insertTriggerButton();
+    clearAllQuantityInputs();
+
+
+    // Ensure pagination is only created ONCE
+    //if (!document.querySelector('.custom-pagination')) {
+    if (!document.querySelector('.custom-pagination')) {
+        createCustomPagination();
+    }
+}
+
+// Run once after the page loads
+window.addEventListener('load', runScripts);
+
+// Use a single MutationObserver to monitor changes efficiently
+let observer = new MutationObserver((mutations) => {
+    let shouldRun = false;
+
+    for (let mutation of mutations) {
+        if (mutation.addedNodes.length || mutation.removedNodes.length) {
+            shouldRun = true;
+            break;
+        }
+    }
+
+    if (shouldRun) {
+        console.log('DOM updated, running scripts...');
+        runScripts();
+    }
+});
+
+// Start observing changes
+observer.observe(document.body, { childList: true, subtree: true });
+
 })();
