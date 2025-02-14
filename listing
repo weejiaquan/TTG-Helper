@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         TTG Listing
+// @name         TTG Listing Helper
 // @namespace    http://tampermonkey.net/
 // @version      2025-02-13
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.thetradinggallery.com/en/ca/add-multiple/singles/*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=google.com
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=discord.com
 // @grant        none
 // ==/UserScript==
 
