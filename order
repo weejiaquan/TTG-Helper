@@ -1,0 +1,126 @@
+// ==UserScript==
+// @name         TTG Order Helper
+// @namespace    https://github.com/weejiaquan/
+// @version      2025-02-14
+// @description  Extracts order details across multiple pages and copies them to clipboard
+// @author       Lychwee
+// @match        https://www.thetradinggallery.com/en/ca/sellers/manage-orders*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=google.com
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Create and insert a persistent button
+    function addScrapeButton() {
+        let button = document.createElement('button');
+        button.innerText = 'Scrape Data to Clipboard';
+        button.style.position = 'fixed';
+        button.style.top = '10px';
+        button.style.right = '10px';
+        button.style.zIndex = '10000';
+        button.style.padding = '10px 15px';
+        button.style.fontSize = '14px';
+        button.style.backgroundColor = '#007bff';
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '5px';
+        button.style.cursor = 'pointer';
+        button.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.3)';
+        button.style.opacity = '0.5';
+        button.addEventListener('click', startScraping);
+        document.body.appendChild(button);
+    }
+
+    async function scrapeOrders(pageNum) {
+        return new Promise((resolve) => {
+            let data = `\n ======== NEW Page ${pageNum}  ======== \n`;
+
+            document.querySelectorAll('.ManageOrderCard_orderCard__g2CG9').forEach(orderCard => {
+                let leftLink = orderCard.querySelector('.ManageOrderCard_left__DtVTM a');
+                let rightSection = orderCard.querySelector('.ManageOrderCard_right__0dbv9');
+                let productDescription = orderCard.querySelector('.grayBorderTop.ManageOrderCard_productDescription__lLpvq');
+
+                let orderText = leftLink ? leftLink.querySelector('h5')?.textContent.trim() || 'N/A' : 'N/A';
+                let orderHref = leftLink ? leftLink.href : 'N/A';
+                let username = rightSection ? rightSection.querySelector('h5:nth-of-type(1)')?.textContent.trim() || 'N/A' : 'N/A';
+                let email = rightSection ? rightSection.querySelector('h5:nth-of-type(2)')?.textContent.trim() || 'N/A' : 'N/A';
+
+                let products = [];
+                if (productDescription) {
+                    productDescription.querySelectorAll('h6').forEach(product => {
+                        products.push(product.textContent.trim());
+                    });
+                }
+
+                // Format order details as text
+                data += `------------Page${pageNum}------------\n`;
+                data += `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${pageNum} \n`;
+                data += `Order Link: ${orderHref} (${orderText})\n`;
+                data += `Username: ${username}\n`;
+                data += `Email: ${email}\n`;
+                data += `Products:\n`;
+                products.forEach(product => {
+                    data += `  - ${product}\n`;
+                });
+                data += `\n`;
+            });
+
+            resolve(data);
+        });
+    }
+
+    async function startScraping() {
+        let pageRange = prompt("Enter page range (e.g., 1-5):", "1-5");
+        if (!pageRange || !/^\d+-\d+$/.test(pageRange)) {
+            alert("Invalid input. Please enter in the format: 1-5");
+            return;
+        }
+
+        let [startPage, endPage] = pageRange.split('-').map(Number);
+        if (startPage > endPage) {
+            alert("Invalid range. Start page must be less than or equal to end page.");
+            return;
+        }
+
+        let allData = '';
+
+        for (let page = startPage; page <= endPage; page++) {
+            console.log(`Scraping page ${page}...`);
+            let url = `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${page}`;
+            await fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(html, 'text/html');
+                    document.body.innerHTML = doc.body.innerHTML; // Simulate navigating to the new page
+                    return scrapeOrders(page);
+                })
+                .then(data => {
+                    allData += data;
+                })
+                .catch(err => console.error(`Error fetching page ${page}:`, err));
+
+            // Delay to prevent rapid-fire requests
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        // Copy results to clipboard
+        if (allData.trim()) {
+            navigator.clipboard.writeText(allData).then(() => {
+                console.log("All order details copied to clipboard!");
+                alert("All order details copied! Paste it in a text file.");
+            }).catch(err => {
+                console.error("Error copying text:", err);
+            });
+        } else {
+            console.log("No orders found.");
+        }
+
+            addScrapeButton();
+
+    }
+
+    window.addEventListener('load', addScrapeButton);
+})();
