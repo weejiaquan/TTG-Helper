@@ -14,61 +14,88 @@
 
 
 
-function addScrapeButton() {
-    let topPage = document.querySelector('.CustomPagination_customPagination__guEd4');
-    if (!topPage) return;
+    function addScrapeButton() {
+        let topPage = document.querySelector('.CustomPagination_customPagination__guEd4');
+        if (!topPage) return;
 
-    // Remove existing button if present
-    let existingButton = document.querySelector('.scrape-data-button');
-    if (existingButton) return;
+        // Remove existing buttons if present
+        let existingButton = document.querySelector('.scrape-data-button-container');
+        if (existingButton) return;
 
-    // Create a container for the button
-    let buttonContainer = document.createElement('div');
-    buttonContainer.classList.add('scrape-data-button-container');
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.alignItems = 'center';
-    buttonContainer.style.gap = '10px';
-    buttonContainer.style.padding = '10px';
+        // Create a container for the buttons
+        let buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('scrape-data-button-container');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.alignItems = 'center';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.padding = '10px';
+        buttonContainer.style.position = 'sticky'; // Make it stick
+        buttonContainer.style.top = '0'; // Stick to the top
+        buttonContainer.style.zIndex = '1000'; // Ensure it appears above other elements
 
-    // Create button
-    let button = document.createElement('button');
-    button.innerText = 'Scrape Data to Clipboard';
-    button.classList.add('scrape-data-button');
-    button.style.padding = '8px 12px';
-    button.style.fontSize = '14px';
-    button.style.backgroundColor = '#007bff';
-    button.style.color = 'white';
-    button.style.border = 'none';
-    button.style.borderRadius = '5px';
-    button.style.cursor = 'pointer';
-    button.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.3)';
-    button.style.transition = 'all 0.3s ease-in-out'; // Smooth transition effect
-    button.addEventListener('click', startScraping);
+        // Function to create buttons dynamically
+        function createButton(text, color, mode) {
+            let button = document.createElement('button');
+            button.innerText = text;
+            button.classList.add('scrape-data-button');
+            button.style.padding = '8px 12px';
+            button.style.fontSize = '14px';
+            button.style.backgroundColor = color;
+            button.style.color = 'white';
+            button.style.border = 'none';
+            button.style.borderRadius = '5px';
+            button.style.cursor = 'pointer';
+            button.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.3)';
+            button.style.transition = 'all 0.3s ease-in-out';
+            button.addEventListener('click', () => startScraping(mode));
+            return button;
+        }
 
-    buttonContainer.appendChild(button);
-    topPage.insertBefore(buttonContainer, topPage.firstChild);
+        // Create two buttons
+        let allDataButton = createButton('All Data', '#007bff', 0); // Blue button
+        let preOrderButton = createButton('Pre-order', '#dc3545', 1); // Red button
+        let shipmentButton = createButton('Shipment', '#F6BE00', 2); // Yellow button
+        let pickupButton = createButton('Pickup', '#013220 ', 3); // Yellow button
 
-    // Observe visibility changes
-    let observer = new IntersectionObserver(
-        ([entry]) => {
-            if (!entry.isIntersecting) {
-                button.style.position = 'fixed';
-                button.style.top = '10px';
-                button.style.right = '10px';
-                button.style.zIndex = '1000';
-                button.style.boxShadow = '4px 4px 10px rgba(0, 0, 0, 0.4)';
-            } else {
-                button.style.position = 'static';
-                button.style.boxShadow = '2px 2px 5px rgba(0, 0, 0, 0.3)';
-            }
-        },
-        { threshold: 0.1 }
-    );
 
-    observer.observe(buttonContainer);
 
-    console.log("Scrape button added successfully!");
-}
+        // Append buttons to container
+        buttonContainer.appendChild(allDataButton);
+        buttonContainer.appendChild(preOrderButton);
+        buttonContainer.appendChild(shipmentButton);
+        buttonContainer.appendChild(pickupButton);
+
+
+
+        // Insert container into the page
+        topPage.insertBefore(buttonContainer, topPage.firstChild);
+
+        // Observe visibility changes for both buttons
+        //let observer = new IntersectionObserver(
+        //   ([entry]) => {
+        //     if (!entry.isIntersecting) {
+        //       buttonContainer.style.position = 'fixed';
+        //     buttonContainer.style.top = '10px';
+        //   buttonContainer.style.right = '10px';
+        // buttonContainer.style.zIndex = '1000';
+        //             buttonContainer.style.boxShadow = '4px 4px 10px rgba(0, 0, 0, 0.4)';
+        //           buttonContainer.style.background = 'rgba(255, 255, 255, 0.9)'; // Light background for better visibility
+        //         buttonContainer.style.padding = '10px';
+        //       buttonContainer.style.borderRadius = '8px';
+        //            } else {
+        //              buttonContainer.style.position = 'static';
+        //            buttonContainer.style.boxShadow = 'none';
+        //          buttonContainer.style.background = 'transparent';
+        //    }
+        //      },
+        //    { threshold: 0.1 }
+        // );
+
+        // observer.observe(buttonContainer);
+
+        console.log("Scrape buttons added successfully!");
+    }
+
 
 
     function observePageChanges() {
@@ -76,10 +103,13 @@ function addScrapeButton() {
             addScrapeButton();
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     }
 
-    async function scrapeOrders(pageNum) {
+    async function scrapeOrders(pageNum, mode) {
         return new Promise((resolve) => {
             let data = `\n ======== NEW Page ${pageNum}  ======== \n`;
 
@@ -101,7 +131,15 @@ function addScrapeButton() {
                 }
 
                 data += `------------Page${pageNum}------------\n`;
-                data += `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${pageNum} \n`;
+                if (mode == 0) {
+                    data += `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${pageNum} \n`;
+                } else if (mode == 1) {
+                    data += `https://www.thetradinggallery.com/en/ca/sellers/manage-orders/current/pre-order?page=${pageNum} \n`;
+                } else if (mode == 2) {
+                    data += `https://www.thetradinggallery.com/en/ca/sellers/manage-orders/current/outbound?page=${pageNum} \n`;
+                } else if (mode == 3) {
+                    data += `https://www.thetradinggallery.com/en/ca/sellers/manage-orders/current/pickup?page=${pageNum} \n`;
+                }
                 data += `Order Link: ${orderHref} (${orderText})\n`;
                 data += `Username: ${username}\n`;
                 data += `Email: ${email}\n`;
@@ -116,7 +154,7 @@ function addScrapeButton() {
         });
     }
 
-    async function startScraping() {
+    async function startScraping(mode = 0) {
         let pageRange = prompt("Enter page range (e.g., 1-5):", "1-5");
         if (!pageRange || !/^\d+-\d+$/.test(pageRange)) {
             alert("Invalid input. Please enter in the format: 1-5");
@@ -131,16 +169,25 @@ function addScrapeButton() {
 
         let allData = '';
 
+        let url = '';
         for (let page = startPage; page <= endPage; page++) {
             console.log(`Scraping page ${page}...`);
-            let url = `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${page}`;
+            if (mode == 0) {
+                url = `https://www.thetradinggallery.com/en/ca/sellers/manage-orders?page=${page}`;
+            } else if (mode == 1) {
+                url = `https://www.thetradinggallery.com/en/ca/sellers/manage-orders/current/pre-order?page=${page}`;
+            } else if (mode == 2) {
+                url = `https://www.thetradinggallery.com/en/ca/sellers/manage-orders/current/outbound?page=${page}`;
+            } else if (mode == 3) {
+                url = `https://www.thetradinggallery.com/en/ca/sellers/manage-orders/current/pickup?page=${page}`;
+            }
             await fetch(url)
                 .then(response => response.text())
                 .then(html => {
                     let parser = new DOMParser();
                     let doc = parser.parseFromString(html, 'text/html');
                     document.body.innerHTML = doc.body.innerHTML;
-                    return scrapeOrders(page);
+                    return scrapeOrders(page, mode);
                 })
                 .then(data => {
                     allData += data;
